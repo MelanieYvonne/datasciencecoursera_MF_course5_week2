@@ -1,3 +1,7 @@
+``` r
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 Reproducible Research: Peer Assessment 1
 ========================================
 
