@@ -4,18 +4,39 @@ Reproducible Research: Peer Assessment 1
 Loading the file
 ----------------
 
+    setwd('M:/03_Plan_net_media/13_Insights/02_Intelligence/04_Interne_Projekte/Melanie/Coursera/Kurs 5/Assigment1')
+    data <- read.csv("activity.csv")
+
 ### Calculate and report the total number of missing values in the dataset
 
 And filled it with missing data
 
+    data_na <- na.omit(data)
+    gesamt_data_na <- aggregate(steps ~ date, data_na, sum)
+
 What is mean total number of steps taken per day?
 =================================================
+
+    hist(
+            gesamt_data_na$steps, 
+            main = "total number of steps taken each day", 
+            xlab="Steps per day", 
+            ylab="Frequency", 
+            col = "blue", 
+            breaks = 15
+    )
 
 ![](PA1_template_files/figure-markdown_strict/unnamed-chunk-3-1.png)
 
 ### mean /median
 
+    meanx <- mean(gesamt_data_na$steps)
+    print(meanx)
+
     ## [1] 10766.19
+
+    median <- median(gesamt_data_na$steps)
+    print(median)
 
     ## [1] 10765
 
@@ -24,11 +45,20 @@ What is the average daily activity pattern?
 
 Print a series Plot. At first aggregate the date for series.
 
+    serien <- aggregate(steps ~ interval, data = data, FUN = function(x) {
+            mean(x, na.rm = TRUE)})
+    library(ggplot2)
+
     ## Warning: package 'ggplot2' was built under R version 3.3.2
+
+    ggplot(serien, aes(interval, steps)) + geom_line(colour = "green", lwd = 2) + 
+            labs(title = expression("5-minute interval"))
 
 ![](PA1_template_files/figure-markdown_strict/unnamed-chunk-5-1.png)
 Which 5-minute interval, on average across all the days in the dataset,
 contains the maximum number of steps?
+
+    serien[which.max(serien$steps),]
 
     ##     interval    steps
     ## 104      835 206.1698
@@ -40,18 +70,46 @@ Imputing missing values
 
 <!-- -->
 
+    na<-sum(is.na(data))
+    part<-paste(round(100*(na/nrow(data)), 3), "%")
+    print(part)
+
     ## [1] "13.115 %"
 
 1.  Devise a strategy for filling in all of the missing values in
     the dataset...
 
+<!-- -->
+
+    full_data <- data
+
 Replace each missing value with the mean value.
 
+    fuehlenMean <- function(steps, interval) {
+            fuehle <- NA
+            if (!is.na(steps))
+                    fuehle <- c(steps)
+            else
+                    fuehle <- (serien[serien$interval==interval, "steps"])
+            return(fuehle)
+    }
+    full_data$steps <- mapply(fuehlenMean, full_data$steps, full_data$interval)
+
 Make a histogram of the total number.
+
+    total <- tapply(full_data$steps, full_data$date, sum, na.rm=TRUE)
+    hist(total, main = 'total number of steps taken each day', col = "red")
+
 ![](PA1_template_files/figure-markdown_strict/unnamed-chunk-10-1.png)
 \#\#\# mean/median of the steps
 
+    mean1 <- mean(total, na.rm= TRUE)
+    print(mean1)
+
     ## [1] 10766.19
+
+    median1 <- median(total, na.rm= TRUE)
+    print(median1)
 
     ## [1] 10766.19
 
@@ -60,7 +118,18 @@ Are there differences in activity patterns between weekdays and weekends
 
 Create a new weekday/Weekend variable in a df.
 
+    df_new <- data
+    df_new$datum <- as.Date(strptime(df_new$date, format="%Y-%m-%d")) 
+    df_new$tag <-  factor(ifelse(as.POSIXlt(df_new$date)$wday %in% c(0,6), 'weekend', 'weekday'))
+
 Aggregate the steps to the different days.
 
+    week_average_df <- aggregate(full_data$steps, list(interval = data$interval, day = df_new$tag), mean)
+    names(week_average_df) <- c("interval", "day", "steps")
+
 Plot it.
+
+    ggplot(week_average_df, aes(interval, steps)) + geom_line(color = "purple3", lwd = 1) + 
+            xlab("Interval: 5 minute") + ylab("Steps numbers") + facet_grid(day ~ .)
+
 ![](PA1_template_files/figure-markdown_strict/unnamed-chunk-14-1.png)
