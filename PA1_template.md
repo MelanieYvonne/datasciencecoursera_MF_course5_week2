@@ -1,5 +1,5 @@
 ``` r
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
 
 Reproducible Research: Peer Assessment 1
@@ -68,8 +68,7 @@ library(ggplot2)
     ## Warning: package 'ggplot2' was built under R version 3.3.2
 
 ``` r
-ggplot(serien, aes(interval, steps)) + geom_line(colour = "green", lwd = 2) + 
-        labs(title = expression("5-minute interval"))
+qplot(interval,steps, data=serien,geom="line",main ="5-minute interval")
 ```
 
 ![](PA1_template_files/figure-markdown_github/unnamed-chunk-5-1.png) Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
